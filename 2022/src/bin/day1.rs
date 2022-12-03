@@ -1,6 +1,4 @@
-use aoc::*;
-
-pub fn get_answer(input: Vec<String>) -> (i32, i32) {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer {
     let mut elves: Vec<Vec<i32>> = Vec::new();
     elves.push(Vec::new());
     input.iter().for_each(|value| {
@@ -28,10 +26,5 @@ pub fn get_answer(input: Vec<String>) -> (i32, i32) {
 }
 
 fn main() -> Result<(), ()> {
-    let day = 1;
-    let test_input = get_input(day, true)?;
-    assert_eq!(get_answer(test_input), (24000, 45000));
-
-    let input = get_input(day, false)?;
-    output_answer(get_answer(input), day)
+    aoc::AoC::new(1, 24000, 45000).compute(&get_answer)
 }

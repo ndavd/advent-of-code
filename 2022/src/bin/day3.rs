@@ -1,5 +1,3 @@
-use aoc::*;
-
 #[derive(Clone)]
 struct Rucksack {
     left_compartment: String,
@@ -94,7 +92,7 @@ impl RucksackTrait for Rucksack {
     }
 }
 
-pub fn get_answer(input: Vec<String>) -> (i32, i32) {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer {
     let mut common_items_priority = 0;
 
     input.iter().for_each(|rucksack_as_string| {
@@ -119,10 +117,5 @@ pub fn get_answer(input: Vec<String>) -> (i32, i32) {
 }
 
 fn main() -> Result<(), ()> {
-    let day = 3;
-    let test_input = get_input(day, true)?;
-    assert_eq!(get_answer(test_input), (157, 70));
-
-    let input = get_input(day, false)?;
-    output_answer(get_answer(input), day)
+    aoc::AoC::new(3, 157, 70).compute(&get_answer)
 }

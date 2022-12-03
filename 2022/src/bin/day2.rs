@@ -1,5 +1,3 @@
-use aoc::*;
-
 #[derive(Clone, Copy)]
 enum GameMove {
     Rock = 1,
@@ -38,7 +36,7 @@ fn get_game_move(game_result: GameResult, player_b_move: GameMove) -> GameMove {
     }
 }
 
-pub fn get_answer(input: Vec<String>) -> (i32, i32) {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer {
     let mut points_won = 0;
     let mut real_points_won = 0;
 
@@ -76,10 +74,5 @@ pub fn get_answer(input: Vec<String>) -> (i32, i32) {
 }
 
 fn main() -> Result<(), ()> {
-    let day = 2;
-    let test_input = get_input(day, true)?;
-    assert_eq!(get_answer(test_input), (15, 12));
-
-    let input = get_input(day, false)?;
-    output_answer(get_answer(input), day)
+    aoc::AoC::new(2, 15, 12).compute(&get_answer)
 }
