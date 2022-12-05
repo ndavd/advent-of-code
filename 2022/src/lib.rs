@@ -3,13 +3,13 @@ pub type Answer = (i32, i32);
 
 #[derive(Debug)]
 pub struct AoC {
-    day: u32,
-    test_answer: Answer,
+    pub day: u32,
+    pub test_answer: Answer,
 }
 
 impl AoC {
     pub fn new(day: u32, test_answer_1: i32, test_answer_2: i32) -> Self {
-        AoC {
+        Self {
             day,
             test_answer: (test_answer_1, test_answer_2),
         }
@@ -20,7 +20,9 @@ impl AoC {
         assert_eq!(get_answer(test_input), self.test_answer, "AoC::Test computation output doesn't match test answer input. You haven't got it yet 😉");
 
         let input = self.read_input(false)?;
-        self.print_answer(get_answer(input))
+        self.print_answer(get_answer(input));
+
+        Ok(())
     }
 
     fn read_input(&self, is_test_data: bool) -> Result<Input, ()> {
@@ -35,10 +37,8 @@ impl AoC {
         .collect())
     }
 
-    fn print_answer(&self, answer: Answer) -> Result<(), ()> {
+    fn print_answer(&self, answer: Answer) {
         println!("{}", "🎄".repeat(self.day.try_into().unwrap()));
         println!("Answer from day {}: {:?}", self.day, answer);
-
-        Ok(())
     }
 }
