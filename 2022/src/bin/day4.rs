@@ -52,29 +52,25 @@ mod elf_pair {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
     let assignments: Vec<elf_pair::ElfPair> = input
         .iter()
         .map(|a| elf_pair::ElfPair::new(a).unwrap())
         .collect();
     let assignments_iter = assignments.iter();
 
-    let fully_overlapping: i32 = assignments_iter
+    let fully_overlapping = assignments_iter
         .clone()
         .filter(|x| x.fully_contains())
         .collect::<Vec<_>>()
-        .len()
-        .try_into()
-        .unwrap();
+        .len();
 
-    let partially_overlapping: i32 = assignments_iter
+    let partially_overlapping = assignments_iter
         .filter(|x| x.partially_contains())
         .collect::<Vec<_>>()
-        .len()
-        .try_into()
-        .unwrap();
+        .len();
 
-    (fully_overlapping, partially_overlapping)
+    aoc::Answer(fully_overlapping, partially_overlapping)
 }
 
 fn main() -> Result<(), ()> {

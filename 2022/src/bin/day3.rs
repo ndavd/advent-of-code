@@ -92,7 +92,7 @@ impl RucksackTrait for Rucksack {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32> {
     let mut common_items_priority = 0;
 
     input.iter().for_each(|rucksack_as_string| {
@@ -113,7 +113,7 @@ pub fn get_answer(input: aoc::Input) -> aoc::Answer {
             Rucksack::get_item_priority(Rucksack::get_group_common_item(group).unwrap()).unwrap()
     }
 
-    (common_items_priority, group_common_items_priority)
+    aoc::Answer(common_items_priority, group_common_items_priority)
 }
 
 fn main() -> Result<(), ()> {

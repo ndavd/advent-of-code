@@ -36,7 +36,7 @@ fn get_game_move(game_result: GameResult, player_b_move: GameMove) -> GameMove {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32> {
     let mut points_won = 0;
     let mut real_points_won = 0;
 
@@ -70,7 +70,7 @@ pub fn get_answer(input: aoc::Input) -> aoc::Answer {
         real_points_won += my_real_move as i32 + game_result_prediction as i32;
     });
 
-    (points_won, real_points_won)
+    aoc::Answer(points_won, real_points_won)
 }
 
 fn main() -> Result<(), ()> {

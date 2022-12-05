@@ -1,4 +1,4 @@
-pub fn get_answer(input: aoc::Input) -> aoc::Answer {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32> {
     let mut elves: Vec<Vec<i32>> = Vec::new();
     elves.push(Vec::new());
     input.iter().for_each(|value| {
@@ -19,7 +19,7 @@ pub fn get_answer(input: aoc::Input) -> aoc::Answer {
     let biggest_elve_calories = *elves_calories.iter().max().unwrap();
     elves_calories.sort();
 
-    (
+    aoc::Answer(
         biggest_elve_calories,
         elves_calories[elves_calories.len() - 3..].iter().sum(),
     )
