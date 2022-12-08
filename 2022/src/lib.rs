@@ -24,9 +24,15 @@ impl<T: Display + Debug + PartialEq> AoC<T> {
         }
     }
 
-    pub fn compute(&self, get_answer: &dyn Fn(Input) -> Answer<T>) -> Result<(), ()> {
+    pub fn test_compute(&self, get_answer: &dyn Fn(Input) -> Answer<T>) -> Result<(), ()> {
         let test_input = self.read_input(true)?;
         assert_eq!(get_answer(test_input), self.test_answer, "AoC::Test computation output doesn't match test answer input. You haven't got it yet 😉");
+
+        Ok(())
+    }
+
+    pub fn compute(&self, get_answer: &dyn Fn(Input) -> Answer<T>) -> Result<(), ()> {
+        self.test_compute(get_answer).unwrap();
 
         let input = self.read_input(false)?;
         self.print_answer(get_answer(input));
