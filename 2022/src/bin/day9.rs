@@ -1,57 +1,53 @@
-use std::collections::HashSet;
-
 mod rope_bridge {
-    #[derive(Debug)]
+    use std::collections::HashSet;
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     /* Assuming the following coordinate system:
      * +y
      *  ^
      *  |
      *  O--> +x
      */
-    pub struct RopePosition {
-        pub head_x: isize,
-        pub head_y: isize,
-        pub tail_x: isize,
-        pub tail_y: isize,
+    pub struct KnotPosition {
+        pub x: isize,
+        pub y: isize,
     }
 
-    impl RopePosition {
-        pub fn new(head_x: isize, head_y: isize, tail_x: isize, tail_y: isize) -> Self {
-            Self {
-                head_x,
-                head_y,
-                tail_x,
-                tail_y,
-            }
+    impl KnotPosition {
+        pub fn new(x: isize, y: isize) -> Self {
+            Self { x, y }
         }
     }
 
     #[derive(Debug)]
-    pub struct RopePath(Vec<RopePosition>);
+    pub struct RopePosition(Vec<KnotPosition>);
 
-    impl std::fmt::Display for RopePath {
+    impl std::fmt::Display for RopePosition {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let path = &self.0;
-            let path_len = path.len();
-            for i in 0..path_len {
-                let pos = &path[i];
-                write!(
-                    f,
-                    "T{{ {} {} }} H{{ {} {} }}",
-                    pos.tail_x, pos.tail_y, pos.head_x, pos.head_y
-                )
-                .unwrap();
-                if i != path_len - 1 {
-                    writeln!(f).unwrap();
-                }
+            let knots_positions = &self.0;
+            let knots_positions_len = knots_positions.len();
+
+            for i in 0..knots_positions_len {
+                let pos = &knots_positions[i];
+                let name = if i == 0 {
+                    'H'
+                } else if i == knots_positions_len - 1 {
+                    'T'
+                } else {
+                    std::char::from_digit(i.try_into().unwrap(), 10).unwrap_or('*')
+                };
+                write!(f, "{}{{ {} {} }} ", name, pos.x, pos.y).unwrap();
             }
             Ok(())
         }
     }
 
+    #[derive(Debug)]
+    pub struct RopePath(pub Vec<RopePosition>);
+
     impl RopePath {
-        pub fn visited_tail_positions(&self) -> Vec<(isize, isize)> {
-            self.0.iter().map(|pos| (pos.tail_x, pos.tail_y)).collect()
+        pub fn visited_tail_positions(&self) -> HashSet<KnotPosition> {
+            self.0.iter().map(|pos| pos.0[pos.0.len() - 1]).collect()
         }
     }
 
@@ -68,12 +64,19 @@ mod rope_bridge {
     }
 
     #[derive(Debug)]
-    // A Rope is defined by a sequence of head steps
-    pub struct Rope(Vec<KnotStep>);
+    // A Rope is defined by a sequence of head steps and how many knots it has
+    pub struct Rope {
+        pub head_steps: Vec<KnotStep>,
+        pub knot_count: usize,
+    }
 
     impl Rope {
-        pub fn new(input: &Vec<String>) -> Result<Self, &str> {
-            let mut rope: Vec<KnotStep> = Vec::new();
+        pub fn new(input: &Vec<String>, knot_count: usize) -> Result<Self, &str> {
+            if knot_count < 2 {
+                return Err("Rope::new::A rope must have at least 2 knots");
+            }
+
+            let mut head_steps: Vec<KnotStep> = Vec::new();
             let bad_input_msg = "Rope::new::Bad input";
 
             for line in input {
@@ -91,50 +94,52 @@ mod rope_bridge {
                 };
 
                 for _ in 0..count {
-                    rope.push(step);
+                    head_steps.push(step);
                 }
             }
 
-            Ok(Rope(rope))
+            Ok(Rope {
+                head_steps,
+                knot_count,
+            })
         }
 
-        fn get_new_pos(pos: (isize, isize), step: &KnotStep) -> (isize, isize) {
-            let (x, y) = pos;
+        fn get_new_pos(pos: &KnotPosition, step: &KnotStep) -> KnotPosition {
             match step {
-                KnotStep::Up => (x, y + 1),
-                KnotStep::Down => (x, y - 1),
-                KnotStep::Left => (x - 1, y),
-                KnotStep::Right => (x + 1, y),
-                KnotStep::UpLeft => (x - 1, y + 1),
-                KnotStep::UpRight => (x + 1, y + 1),
-                KnotStep::DownLeft => (x - 1, y - 1),
-                KnotStep::DownRight => (x + 1, y - 1),
+                KnotStep::Up => KnotPosition::new(pos.x, pos.y + 1),
+                KnotStep::Down => KnotPosition::new(pos.x, pos.y - 1),
+                KnotStep::Left => KnotPosition::new(pos.x - 1, pos.y),
+                KnotStep::Right => KnotPosition::new(pos.x + 1, pos.y),
+                KnotStep::UpLeft => KnotPosition::new(pos.x - 1, pos.y + 1),
+                KnotStep::UpRight => KnotPosition::new(pos.x + 1, pos.y + 1),
+                KnotStep::DownLeft => KnotPosition::new(pos.x - 1, pos.y - 1),
+                KnotStep::DownRight => KnotPosition::new(pos.x + 1, pos.y - 1),
             }
         }
 
-        fn get_tail_pos(
-            previous_pos: &RopePosition,
-            head_x: isize,
-            head_y: isize,
-        ) -> (isize, isize) {
-            let x = previous_pos.tail_x;
-            let y = previous_pos.tail_y;
-
-            let distance_x = head_x - x;
-            let distance_y = head_y - y;
+        fn get_tail_pos(previous_tail_pos: &KnotPosition, head_pos: &KnotPosition) -> KnotPosition {
+            let distance_x = head_pos.x - previous_tail_pos.x;
+            let distance_y = head_pos.y - previous_tail_pos.y;
 
             // Should move tail
             if distance_x.abs() > 1 || distance_y.abs() > 1 {
-                let pos = (x, y);
-                return match (distance_x, distance_y) {
-                    (0, 2) => Self::get_new_pos(pos, &KnotStep::Up),
-                    (0, -2) => Self::get_new_pos(pos, &KnotStep::Down),
-                    (-2, 0) => Self::get_new_pos(pos, &KnotStep::Left),
-                    (2, 0) => Self::get_new_pos(pos, &KnotStep::Right),
-                    (-1, 2) | (-2, 1) => Self::get_new_pos(pos, &KnotStep::UpLeft),
-                    (1, 2) | (2, 1) => Self::get_new_pos(pos, &KnotStep::UpRight),
-                    (-1, -2) | (-2, -1) => Self::get_new_pos(pos, &KnotStep::DownLeft),
-                    (1, -2) | (2, -1) => Self::get_new_pos(pos, &KnotStep::DownRight),
+                let pos = previous_tail_pos;
+                fn norm(x: isize) -> i8 {
+                    if x == 0 {
+                        0
+                    } else {
+                        (x / x.abs()).try_into().unwrap()
+                    }
+                }
+                return match (norm(distance_x), norm(distance_y)) {
+                    (0, 1) => Self::get_new_pos(pos, &KnotStep::Up),
+                    (0, -1) => Self::get_new_pos(pos, &KnotStep::Down),
+                    (-1, 0) => Self::get_new_pos(pos, &KnotStep::Left),
+                    (1, 0) => Self::get_new_pos(pos, &KnotStep::Right),
+                    (-1, 1) => Self::get_new_pos(pos, &KnotStep::UpLeft),
+                    (1, 1) => Self::get_new_pos(pos, &KnotStep::UpRight),
+                    (-1, -1) => Self::get_new_pos(pos, &KnotStep::DownLeft),
+                    (1, -1) => Self::get_new_pos(pos, &KnotStep::DownRight),
                     _ => {
                         println!("{:?}", (distance_x, distance_y));
                         panic!("Rope::get_tail_pos::Something has gone extremely wrong!")
@@ -142,44 +147,56 @@ mod rope_bridge {
                 };
             }
 
-            (x, y)
+            previous_tail_pos.clone()
         }
 
         pub fn get_path(&self, origin: Option<isize>) -> Result<RopePath, &str> {
             let o = origin.unwrap_or(0);
-            let steps = &self.0;
-            let mut path = vec![RopePosition::new(o, o, o, o)];
+            let head_steps = &self.head_steps;
+            let mut path = vec![vec![KnotPosition::new(o, o); self.knot_count]];
 
-            for i in 0..steps.len() {
-                let previous_pos = &path[i];
+            for i in 0..head_steps.len() {
+                let previous_rope_pos = &path[i];
+                let mut new_rope_pos: Vec<KnotPosition> = Vec::new();
 
-                let (head_x, head_y) =
-                    Self::get_new_pos((previous_pos.head_x, previous_pos.head_y), &steps[i]);
+                let head_pos = Self::get_new_pos(&previous_rope_pos[0], &head_steps[i]);
+                new_rope_pos.push(head_pos);
 
-                let (tail_x, tail_y) = Self::get_tail_pos(previous_pos, head_x, head_y);
+                let mut relative_head_pos = head_pos;
+                for k in 1..self.knot_count {
+                    let tail_pos = Self::get_tail_pos(&previous_rope_pos[k], &relative_head_pos);
+                    new_rope_pos.push(tail_pos);
 
-                path.push(RopePosition {
-                    head_x,
-                    head_y,
-                    tail_x,
-                    tail_y,
-                });
+                    relative_head_pos = tail_pos;
+                }
+
+                path.push(new_rope_pos);
             }
 
-            Ok(RopePath(path))
+            Ok(RopePath(
+                path.iter().map(|p| RopePosition(p.to_vec())).collect(),
+            ))
         }
     }
 }
 
 pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
-    let rope = rope_bridge::Rope::new(&input).unwrap();
-    let path = rope.get_path(None).unwrap();
+    let simple_rope_path = rope_bridge::Rope::new(&input, 2)
+        .unwrap()
+        .get_path(None)
+        .unwrap();
 
-    let tail_positions = path.visited_tail_positions();
+    let complex_rope_path = rope_bridge::Rope::new(&input, 10)
+        .unwrap()
+        .get_path(None)
+        .unwrap();
 
-    aoc::Answer(tail_positions.iter().collect::<HashSet<_>>().len(), 0)
+    aoc::Answer(
+        simple_rope_path.visited_tail_positions().len(),
+        complex_rope_path.visited_tail_positions().len(),
+    )
 }
 
 fn main() -> Result<(), ()> {
-    aoc::AoC::new(9, 13, 0).compute(&get_answer)
+    aoc::AoC::new(9, 13, 1).compute(&get_answer)
 }
