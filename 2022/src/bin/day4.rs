@@ -52,7 +52,7 @@ mod elf_pair {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize, usize> {
     let assignments: Vec<elf_pair::ElfPair> = input
         .iter()
         .map(|a| elf_pair::ElfPair::new(a).unwrap())

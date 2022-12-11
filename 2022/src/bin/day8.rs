@@ -132,7 +132,7 @@ mod quadcopter {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize, usize> {
     let forest_map = quadcopter::TreeMap::new(&input).unwrap();
 
     let trees = forest_map.get_tree_details();

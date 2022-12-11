@@ -50,7 +50,7 @@ mod communication_system {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize, usize> {
     let signal = communication_system::Signal::new(&input).unwrap();
 
     aoc::Answer(

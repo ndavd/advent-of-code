@@ -92,7 +92,7 @@ impl RucksackTrait for Rucksack {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32, i32> {
     let mut common_items_priority = 0;
 
     input.iter().for_each(|rucksack_as_string| {

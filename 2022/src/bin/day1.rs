@@ -1,4 +1,4 @@
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32, i32> {
     let mut elves: Vec<Vec<i32>> = Vec::new();
     elves.push(Vec::new());
     input.iter().for_each(|value| {

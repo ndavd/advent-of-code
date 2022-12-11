@@ -180,7 +180,7 @@ mod rope_bridge {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize, usize> {
     let simple_rope_path = rope_bridge::Rope::new(&input, 2)
         .unwrap()
         .get_path(None)

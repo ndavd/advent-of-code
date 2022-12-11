@@ -36,7 +36,7 @@ fn get_game_move(game_result: GameResult, player_b_move: GameMove) -> GameMove {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<i32, i32> {
     let mut points_won = 0;
     let mut real_points_won = 0;
 

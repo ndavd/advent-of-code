@@ -150,7 +150,7 @@ mod device {
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize, usize> {
     let fs = device::FileSystem::new(&input).unwrap();
 
     aoc::Answer(

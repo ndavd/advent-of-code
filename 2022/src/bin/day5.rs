@@ -150,7 +150,7 @@ mod supply_stacks {
         }
     }
 }
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<String> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<String, String> {
     let drawing_contents = supply_stacks::DrawingComponents::new(input).unwrap();
 
     let mut supply_stacks = supply_stacks::SupplyStacks::new(drawing_contents.stacks).unwrap();
