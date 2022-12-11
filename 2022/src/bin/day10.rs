@@ -95,6 +95,44 @@ mod handheld_device {
         }
     }
 
+    #[derive(Debug, PartialEq, Eq)]
+    pub struct CRTScreenOutput(pub Vec<Vec<char>>);
+
+    pub const LOWER_HALF_BLOCK: &str = "▃";
+    pub const DARK_BLOCK: &str = " ";
+    pub const LIGHT_BLOCK: &str = "▓";
+    pub const BLOCK: &str = "░";
+
+    impl std::fmt::Display for CRTScreenOutput {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            let screen = &self.0;
+            let screen_height = screen.len();
+            let monitor_width = screen[0].len();
+
+            writeln!(f, "\n{}", LOWER_HALF_BLOCK.repeat(monitor_width + 2)).unwrap();
+            for i in 0..screen_height {
+                writeln!(
+                    f,
+                    "{1}{0}{1}",
+                    screen[i].iter().cloned().collect::<String>(),
+                    BLOCK
+                )
+                .unwrap();
+            }
+            writeln!(f, "{}", BLOCK.repeat(monitor_width + 2)).unwrap();
+            let model = " Communication device 9000 ";
+            write!(
+                f,
+                "{2}{3}{3}{0}{1}{2}",
+                model,
+                LOWER_HALF_BLOCK
+                    .repeat(monitor_width - model.len() - 2),
+                BLOCK,
+                LOWER_HALF_BLOCK
+            )
+        }
+    }
+
     impl Program {
         pub fn new(instructions: &ProgramInstructions) -> Self {
             let initial_x = 1;
@@ -122,10 +160,35 @@ mod handheld_device {
             }
             Ok(cycle as isize * self.0[cycle].x)
         }
+
+        pub fn execute(&self) -> CRTScreenOutput {
+            let mut screen: Vec<Vec<char>> = Vec::new();
+            let mut screen_line: Vec<char> = Vec::new();
+            let program = &self.0;
+            for cycle in 1..program.len() {
+                let sprite_start = program[cycle].x - 1;
+                let sprite = sprite_start..=sprite_start + 2;
+                let pixel_pos = (cycle - 1) % 40;
+                let draw_pixel = sprite.contains(&(pixel_pos as isize));
+
+                screen_line.push(if draw_pixel {
+                    LIGHT_BLOCK.chars().next().unwrap()
+                } else {
+                    DARK_BLOCK.chars().next().unwrap()
+                });
+
+                if screen_line.len() == 40 {
+                    screen.push(screen_line.clone());
+                    screen_line = Vec::new();
+                }
+            }
+
+            CRTScreenOutput(screen)
+        }
     }
 }
 
-pub fn get_answer(input: aoc::Input) -> aoc::Answer<isize> {
+pub fn get_answer(input: aoc::Input) -> aoc::Answer<isize, handheld_device::CRTScreenOutput> {
     let instructions = handheld_device::ProgramInstructions::new(&input).unwrap();
     let program = handheld_device::Program::new(&instructions);
 
@@ -136,9 +199,33 @@ pub fn get_answer(input: aoc::Input) -> aoc::Answer<isize> {
         .map(|cycle| program.signal_strength(*cycle).unwrap())
         .sum();
 
-    aoc::Answer(strength, 0)
+    let crt_out = program.execute();
+
+    aoc::Answer(strength, crt_out)
 }
 
 fn main() -> Result<(), ()> {
-    aoc::AoC::new(10, 13140, 0).compute(&get_answer)
+    let raw_crt_out: Vec<String> = vec![
+        "##..##..##..##..##..##..##..##..##..##..",
+        "###...###...###...###...###...###...###.",
+        "####....####....####....####....####....",
+        "#####.....#####.....#####.....#####.....",
+        "######......######......######......####",
+        "#######.......#######.......#######.....",
+    ]
+    .iter()
+    .map(|s| {
+        s.replace("#", handheld_device::LIGHT_BLOCK)
+            .replace(".", handheld_device::DARK_BLOCK)
+    })
+    .collect();
+
+    let crt_out = handheld_device::CRTScreenOutput(
+        raw_crt_out
+            .iter()
+            .map(|e| e.chars().collect::<Vec<char>>())
+            .collect::<Vec<Vec<char>>>(),
+    );
+
+    aoc::AoC::new(10, 13140, crt_out).compute(&get_answer)
 }
