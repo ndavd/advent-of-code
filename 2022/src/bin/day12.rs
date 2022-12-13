@@ -66,7 +66,6 @@ mod handheld_device {
         // Positions are indices in the map array of arrays
         pub origin: Position,
         pub destination: Position,
-        pub history: Vec<Position>,
         pub map: Vec<Vec<u8>>,
     }
 
@@ -132,18 +131,30 @@ mod handheld_device {
             Ok(HeightMap {
                 origin: origin_pos.unwrap(),
                 destination: destination_pos.unwrap(),
-                history: vec![],
                 map,
             })
         }
 
+        pub fn get_of_height(&self, h: u8) -> Vec<Position> {
+            let mut v: Vec<Position> = vec![];
+            for y in 0..self.map.len() {
+                for x in 0..self.map[y].len() {
+                    if self.map[y][x] == h {
+                        v.push(Position::new(x, y));
+                    }
+                }
+            }
+            v
+        }
+
         // Using backtracing
-        pub fn smallest_path(&self) -> Vec<Position> {
+        pub fn smallest_path(&self, custom_origin: Option<Position>) -> Vec<Position> {
             let map = &self.map;
+            let origin = custom_origin.unwrap_or(self.origin.clone());
             let mut paths: Vec<Vec<Position>> = Vec::new();
             let mut history: Vec<Position> = Vec::new();
             let mut unexplored: VecDeque<(Position, Vec<Position>)> = VecDeque::new();
-            unexplored.push_back((self.origin.clone(), Vec::new()));
+            unexplored.push_back((origin, Vec::new()));
             while let Some((curr_pos, path)) = unexplored.pop_front() {
                 if history.contains(&curr_pos) {
                     continue;
@@ -167,6 +178,9 @@ mod handheld_device {
                     }
                 }
             }
+            if paths.len() == 0 {
+                return Vec::new();
+            }
             paths
                 .iter()
                 .min_by(|a, b| a.len().cmp(&b.len()))
@@ -179,9 +193,21 @@ mod handheld_device {
 pub fn get_answer(input: aoc::Input) -> aoc::Answer<usize, usize> {
     let height_map = handheld_device::HeightMap::new(&input).unwrap();
 
-    aoc::Answer(height_map.smallest_path().len(), 0)
+    let lower_points = height_map.get_of_height(0);
+    let mut distances_from_lower_points: Vec<usize> = vec![];
+    for point in lower_points {
+        let distance = height_map.smallest_path(Some(point)).len();
+        if distance != 0 {
+            distances_from_lower_points.push(distance);
+        }
+    }
+
+    aoc::Answer(
+        height_map.smallest_path(None).len(),
+        *distances_from_lower_points.iter().min().unwrap(),
+    )
 }
 
 fn main() -> Result<(), ()> {
-    aoc::AoC::new(12, 31, 0).compute(&get_answer)
+    aoc::AoC::new(12, 31, 29).compute(&get_answer)
 }
